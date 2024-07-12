@@ -1,0 +1,29 @@
+config:
+  target: "{{ $processEnvironment.API_URL }}"
+  http:
+    timeout: 60
+  processor: "generator.js"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+
+scenarios:
+  - name: "Generate products"
+    weight: 1
+    flow:
+      - function: "generateProduct"
+      - put:
+          url: "/{{ id }}"
+          headers:
+            Content-Type: "application/json"
+          json:
+            id: "{{ id }}"
+            name: "{{ name }}"
+            price: "{{ price }}"
+      - get:
+          url: "/{{ id }}"
+  - name: "Get products"
+    weight: 9
+    flow:
+      - get:
+          url: "/"

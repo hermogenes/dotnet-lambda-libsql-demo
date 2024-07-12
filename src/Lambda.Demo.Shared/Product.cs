@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace Lambda.Demo.MinimalApi.DynamoDb;
+namespace Lambda.Demo.Shared;
 
 [method: DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(Product))]
 public record Product(

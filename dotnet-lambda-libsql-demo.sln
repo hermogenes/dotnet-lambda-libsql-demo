@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lambda.Demo.MinimalApi.LibS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lambda.Demo.MinimalApi.DynamoDb", "src\Lambda.Demo.MinimalApi.DynamoDb\Lambda.Demo.MinimalApi.DynamoDb.csproj", "{00AF9B1C-73A9-4442-B5AC-2F76696501CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lambda.Demo.Shared", "src\Lambda.Demo.Shared\Lambda.Demo.Shared.csproj", "{20242114-2BFF-40AC-9B3C-AD75C66F5D6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C2046FBA-4EA4-48EB-AD3B-45FA9955CE91} = {9F52BF8D-0C7B-4C58-89E6-60103C1F4A4D}
 		{00AF9B1C-73A9-4442-B5AC-2F76696501CE} = {9F52BF8D-0C7B-4C58-89E6-60103C1F4A4D}
+		{20242114-2BFF-40AC-9B3C-AD75C66F5D6F} = {9F52BF8D-0C7B-4C58-89E6-60103C1F4A4D}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C2046FBA-4EA4-48EB-AD3B-45FA9955CE91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -30,5 +33,9 @@ Global
 		{00AF9B1C-73A9-4442-B5AC-2F76696501CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00AF9B1C-73A9-4442-B5AC-2F76696501CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00AF9B1C-73A9-4442-B5AC-2F76696501CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20242114-2BFF-40AC-9B3C-AD75C66F5D6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20242114-2BFF-40AC-9B3C-AD75C66F5D6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20242114-2BFF-40AC-9B3C-AD75C66F5D6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20242114-2BFF-40AC-9B3C-AD75C66F5D6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

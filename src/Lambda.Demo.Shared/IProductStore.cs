@@ -1,4 +1,4 @@
-namespace Lambda.Demo.MinimalApi.DynamoDb;
+namespace Lambda.Demo.Shared;
 
 public interface IProductStore
 {

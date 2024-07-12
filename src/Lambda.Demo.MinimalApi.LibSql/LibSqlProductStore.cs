@@ -1,3 +1,4 @@
+using Lambda.Demo.Shared;
 using LibSql.Http.Client.Interfaces;
 
 namespace Lambda.Demo.MinimalApi.LibSql;
