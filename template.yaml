@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Demo of .NET Lambda function using libSQL
+
+Parameters:
+  LibSqlClientUrl:
+    Type: String
+  LibSqlClientToken:
+    Type: String
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Tracing: Active
+    Architectures:
+      - arm64
+    Runtime: dotnet8
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
+
+Resources:
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+  LibSql:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: dotnet-demo-libsql
+      CodeUri: ./src/Lambda.Demo.MinimalApi.LibSql/
+      Handler: Lambda.Demo.MinimalApi.LibSql
+      Environment:
+        Variables:
+          LIBSQL_CLIENT_URL: !Sub ${LibSqlClientUrl}
+          LIBSQL_CLIENT_TOKEN: !Sub ${LibSqlClientToken}
+      FunctionUrlConfig:
+        AuthType: NONE
+  DynamoDb:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: dotnet-demo-dynamodb
+      CodeUri: ./src/Lambda.Demo.MinimalApi.DynamoDb/
+      Handler: Lambda.Demo.MinimalApi.DynamoDb
+      Environment:
+        Variables:
+          PRODUCT_TABLE_NAME: !Ref Table
+      FunctionUrlConfig:
+        AuthType: NONE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Table
