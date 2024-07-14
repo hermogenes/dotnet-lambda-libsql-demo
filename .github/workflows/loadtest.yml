@@ -114,17 +114,44 @@ jobs:
         run: sleep 60
 
       - name: Run readonly load test
-        run: task loadtest FUNCTION=LibSql TEST_FILE=load-test-read-only.yml
+        run: task loadtest FUNCTION=LibSql TEST_FILE=load-test-read-only.yml OUTPUT=readonly
 
       - name: Save end time
         id: end-time
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs')
             const timestamp = Math.round(Date.now() / 1000);
             core.setOutput('timestamp', timestamp);
+            const queryString = 'filter @type="REPORT" | fields greatest(@initDuration, 0) + @duration as duration, ispresent(@initDuration) as coldstart | stats count(*) as count, min(duration) as min, avg(duration) as avg, pct(duration, 50) as p50, pct(duration, 75) as p75, pct(duration, 90) as p90, pct(duration, 95) as p95, pct(duration, 99) as p99, max(duration) as max by coldstart';
+            fs.writeFile('./loadtest/results/start-query-phase-1.json', JSON.stringify({
+              logGroupName: '/aws/lambda/dotnet-demo-libsql',
+              startTime: ${{ steps.start-time.outputs.timestamp }},
+              endTime: ${{ steps.half-time.outputs.timestamp }},
+              queryString
+            }))
+            fs.writeFile('./loadtest/results/start-query-phase-2.json', JSON.stringify({
+              logGroupName: '/aws/lambda/dotnet-demo-libsql',
+              startTime: ${{ steps.half-time.outputs.timestamp }},
+              endTime: ${{ steps.end-time.outputs.timestamp }},
+              queryString
+            }))
 
-      - name: Upload NuGet packages as artifacts
+      - name: Wait for 2 minutes
+        run: sleep 120
+
+      - name: Get Cloudwatch results
+        run: |
+          QUERY_ID_PHASE_1=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-1.json --query queryId --output text)
+          QUERY_ID_PHASE_2=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-2.json --query queryId --output text)
+          
+          sleep 3
+
+          aws logs get-query-results --query-id $QUERY_ID_PHASE_1 > ./loadtest/results/query-results-phase-1.json
+          aws logs get-query-results --query-id $QUERY_ID_PHASE_2 > ./loadtest/results/query-results-phase-2.json
+
+      - name: Upload results
         uses: actions/upload-artifact@v4
         with:
           name: libsql-loadtest-results
@@ -184,20 +211,46 @@ jobs:
         run: sleep 60
 
       - name: Run readonly load test
-        run: task loadtest FUNCTION=DynamoDb TEST_FILE=load-test-read-only.yml
+        run: task loadtest FUNCTION=DynamoDb TEST_FILE=load-test-read-only.yml OUTPUT=readonly
 
       - name: Save end time
         id: end-time
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs')
             const timestamp = Math.round(Date.now() / 1000);
             core.setOutput('timestamp', timestamp);
+            const queryString = 'filter @type="REPORT" | fields greatest(@initDuration, 0) + @duration as duration, ispresent(@initDuration) as coldstart | stats count(*) as count, min(duration) as min, avg(duration) as avg, pct(duration, 50) as p50, pct(duration, 75) as p75, pct(duration, 90) as p90, pct(duration, 95) as p95, pct(duration, 99) as p99, max(duration) as max by coldstart';
+            fs.writeFile('./loadtest/results/start-query-phase-1.json', JSON.stringify({
+              logGroupName: '/aws/lambda/dotnet-demo-dynamodb',
+              startTime: ${{ steps.start-time.outputs.timestamp }},
+              endTime: ${{ steps.half-time.outputs.timestamp }},
+              queryString
+            }))
+            fs.writeFile('./loadtest/results/start-query-phase-2.json', JSON.stringify({
+              logGroupName: '/aws/lambda/dotnet-demo-dynamodb',
+              startTime: ${{ steps.half-time.outputs.timestamp }},
+              endTime: ${{ steps.end-time.outputs.timestamp }},
+              queryString
+            }))
 
-      - name: Upload NuGet packages as artifacts
+      - name: Wait for 2 minutes
+        run: sleep 120
+
+      - name: Get Cloudwatch results
+        run: |
+          QUERY_ID_PHASE_1=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-1.json --query queryId --output text)
+          QUERY_ID_PHASE_2=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-2.json --query queryId --output text)
+          sleep 3
+
+          aws logs get-query-results --query-id $QUERY_ID_PHASE_1 > ./loadtest/results/query-results-phase-1.json
+          aws logs get-query-results --query-id $QUERY_ID_PHASE_2 > ./loadtest/results/query-results-phase-2.json
+
+      - name: Upload results
         uses: actions/upload-artifact@v4
         with:
-          name: libsql-loadtest-results
+          name: dynamodb-loadtest-results
           if-no-files-found: error
           retention-days: 7
           path: ./loadtest/results
