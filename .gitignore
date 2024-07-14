@@ -880,3 +880,4 @@ Temporary Items
 appsettings.Development.json
 .aws-sam
 .env.local
+loadtest/results

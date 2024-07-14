@@ -6,12 +6,18 @@ config:
   phases:
     - duration: 300
       arrivalRate: 30
+  plugins:
+    metrics-by-endpoint:
+      # Group metrics by request name rather than URL:
+      useOnlyRequestNames: true
 
 scenarios:
   - name: "Get products"
     flow:
       - get:
           url: "/"
+          name: "get_all_products"
           afterResponse: getRandomId
       - get:
           url: "/{{ id }}"
+          name: "get_product_by_id"

@@ -6,7 +6,10 @@ config:
   phases:
     - duration: 300
       arrivalRate: 30
-
+  plugins:
+    metrics-by-endpoint:
+      # Group metrics by request name rather than URL:
+      useOnlyRequestNames: true
 scenarios:
   - name: "Generate products"
     weight: 1
@@ -14,6 +17,7 @@ scenarios:
       - function: "generateProduct"
       - put:
           url: "/{{ id }}"
+          name: "create_product"
           headers:
             Content-Type: "application/json"
           json:
@@ -22,15 +26,18 @@ scenarios:
             price: "{{ price }}"
       - get:
           url: "/{{ id }}"
+          name: "get_product_by_id"
       - think: 3
       - delete:
           url: "/{{ id }}"
+          name: "delete_product"
   - name: "Generate products without delete"
     weight: 1
     flow:
       - function: "generateProduct"
       - put:
           url: "/{{ id }}"
+          name: "create_product"
           headers:
             Content-Type: "application/json"
           json:
@@ -39,9 +46,11 @@ scenarios:
             price: "{{ price }}"
       - get:
           url: "/{{ id }}"
+          name: "get_product_by_id"
       - think: 3
   - name: "Get products"
     weight: 8
     flow:
       - get:
           url: "/"
+          name: "get_all_products"

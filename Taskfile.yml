@@ -14,9 +14,10 @@ tasks:
       - echo "Running load test with Artillery..."
       - echo "API_URL {{trimSuffix "/" .API_URL}}"
       - echo "TEST_FILE {{.TEST_FILE}}"
-      - npx artillery run ./loadtest/{{.TEST_FILE}} --target {{trimSuffix "/" .API_URL}}
+      - npx artillery run ./loadtest/{{.TEST_FILE}} --target {{trimSuffix "/" .API_URL}} --output ./loadtest/results/{{.TEST_RESULT_OUTPUT}}.json
     vars:
       TEST_FILE: '{{ default "load-test.yml" .TEST_FILE}}'
+      TEST_RESULT_OUTPUT: '{{ default "output" .TEST_RESULT_OUTPUT}}'
       API_URL:
         sh: task get-function-url FUNCTION={{.FUNCTION}}
   libsql-setup:

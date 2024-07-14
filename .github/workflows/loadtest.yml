@@ -11,6 +11,7 @@ env:
   LIBSQL_CLIENT_TOKEN: ${{ secrets.LIBSQL_CLIENT_TOKEN }}
   SAM_CLI_TELEMETRY: 0
   LAMBDA_ARCH: x86_64
+  ARTILLERY_DISABLE_TELEMETRY: true
 
 jobs:
   setup-aws:
@@ -65,6 +66,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Run libSQL load test
     needs: [setup-aws, setup-libsql]
+    outputs:
+      start-time: ${{ steps.start-time.outputs.timestamp }}
+      half-time: ${{ steps.half-time.outputs.timestamp }}
+      end-time: ${{ steps.end-time.outputs.timestamp }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -84,7 +89,12 @@ jobs:
           node-version: 20.x
 
       - name: Save start time
-        run: echo "START_TIME=$(date -v-10S +%s)" >> $GITHUB_ENV
+        id: start-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000);
+            core.setOutput('timestamp', timestamp);
 
       - name: Run load test
         run: task loadtest FUNCTION=LibSql TEST_FILE=load-test.yml
@@ -92,8 +102,13 @@ jobs:
       - name: Wait for 1 minute
         run: sleep 60
 
-      - name: Save half past time
-        run: echo "HALF_TIME=$(date +%s)" >> $GITHUB_ENV
+      - name: Save half time
+        id: half-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000);
+            core.setOutput('timestamp', timestamp);
 
       - name: Wait for 1 minute
         run: sleep 60
@@ -101,10 +116,30 @@ jobs:
       - name: Run readonly load test
         run: task loadtest FUNCTION=LibSql TEST_FILE=load-test-read-only.yml
 
+      - name: Save end time
+        id: end-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000);
+            core.setOutput('timestamp', timestamp);
+
+      - name: Upload NuGet packages as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libsql-loadtest-results
+          if-no-files-found: error
+          retention-days: 7
+          path: ./loadtest/results
+
   run-dynamodb-loadtest:
     runs-on: ubuntu-latest
     name: Run DynamoDB load test
     needs: [run-libsql-loadtest]
+    outputs:
+      start-time: ${{ steps.start-time.outputs.timestamp }}
+      half-time: ${{ steps.half-time.outputs.timestamp }}
+      end-time: ${{ steps.end-time.outputs.timestamp }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -124,7 +159,12 @@ jobs:
           node-version: 20.x
 
       - name: Save start time
-        run: echo "START_TIME=$(date -v-10S +%s)" >> $GITHUB_ENV
+        id: start-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000);
+            core.setOutput('timestamp', timestamp);
 
       - name: Run load test
         run: task loadtest FUNCTION=DynamoDb TEST_FILE=load-test.yml
@@ -132,8 +172,13 @@ jobs:
       - name: Wait for 1 minute
         run: sleep 60
 
-      - name: Save half past time
-        run: echo "HALF_TIME=$(date +%s)" >> $GITHUB_ENV
+      - name: Save half time
+        id: half-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000);
+            core.setOutput('timestamp', timestamp);
 
       - name: Wait for 1 minute
         run: sleep 60
@@ -141,4 +186,18 @@ jobs:
       - name: Run readonly load test
         run: task loadtest FUNCTION=DynamoDb TEST_FILE=load-test-read-only.yml
 
+      - name: Save end time
+        id: end-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000);
+            core.setOutput('timestamp', timestamp);
 
+      - name: Upload NuGet packages as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libsql-loadtest-results
+          if-no-files-found: error
+          retention-days: 7
+          path: ./loadtest/results
