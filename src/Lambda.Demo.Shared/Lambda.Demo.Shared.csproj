@@ -10,12 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="AWSXRayRecorder.Core" Version="2.15.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <TrimmerRootAssembly Include="AWSXRayRecorder.Core" />
     </ItemGroup>
 
 </Project>

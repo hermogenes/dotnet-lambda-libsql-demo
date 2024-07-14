@@ -5,7 +5,7 @@ namespace Lambda.Demo.Shared;
 
 public class ProductService(IProductStore store, ILogger logger)
 {
-    public async Task<(int, string?)> GetAllProducts()
+    public async Task<(int, Product[])> GetAllProducts()
     {
         logger.LogInformation("Received request to list all products");
 
@@ -13,10 +13,10 @@ public class ProductService(IProductStore store, ILogger logger)
 
         logger.LogInformation("Found {total} products(s)", products.Length);
 
-        return (200, JsonSerializer.Serialize(products, SharedSerializerContext.Default.ProductArray));
+        return (200, products);
     }
 
-    public async Task<(int, string?)> DeleteProduct(string id)
+    public async Task<(int, string)> DeleteProduct(string id)
     {
         try
         {
@@ -28,7 +28,7 @@ public class ProductService(IProductStore store, ILogger logger)
             {
                 logger.LogWarning("Id {id} not found.", id);
 
-                return (404, null);
+                return (404, "Id {id} not found.");
             }
 
             logger.LogInformation("Deleting {productName}", product.Name);
@@ -37,39 +37,33 @@ public class ProductService(IProductStore store, ILogger logger)
 
             logger.LogInformation("Delete complete");
 
-            return (200,
-                JsonSerializer.Serialize($"Product with id {id} deleted", SharedSerializerContext.Default.String));
+            return (200, $"Product with id {id} deleted");
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failure deleting product");
 
-            return (400,
-                JsonSerializer.Serialize($"Failure deleting product with id {id}",
-                    SharedSerializerContext.Default.String));
+            return (400, $"Failure deleting product with id {id}");
         }
     }
 
-    public async Task<(int, string?)> GetProduct(string id)
+    public async Task<(int, Product?)> GetProduct(string id)
     {
         logger.LogInformation("Received request to get {id}", id);
 
         var product = await store.GetProduct(id);
 
         var code = product is null ? 404 : 200;
-        var message = product is null
-            ? JsonSerializer.Serialize($"{id} not found", SharedSerializerContext.Default.String)
-            : JsonSerializer.Serialize(product, SharedSerializerContext.Default.Product);
 
         if (product is null)
         {
             logger.LogWarning("{id} not found", id);
         }
 
-        return (code, message);
+        return (code, product);
     }
 
-    public async Task<(int, string?)> PutProduct(string id, Stream body)
+    public async Task<(int, string)> PutProduct(string id, Stream body)
     {
         var product =
             await JsonSerializer.DeserializeAsync(body, SharedSerializerContext.Default.Product);
@@ -77,12 +71,11 @@ public class ProductService(IProductStore store, ILogger logger)
         if (product is null || id != product.Id)
         {
             return (400,
-                JsonSerializer.Serialize("Product ID in the body does not match path parameter",
-                    SharedSerializerContext.Default.String));
+                "Product ID in the body does not match path parameter");
         }
 
         await store.PutProduct(product);
 
-        return (200, JsonSerializer.Serialize($"Created product with id {id}", SharedSerializerContext.Default.String));
+        return (200, $"Created product with id {id}");
     }
 }

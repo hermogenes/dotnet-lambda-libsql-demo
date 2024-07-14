@@ -879,4 +879,4 @@ Temporary Items
 .vscode
 appsettings.Development.json
 .aws-sam
-samconfig-dev.toml
+.env.local

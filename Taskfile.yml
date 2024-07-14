@@ -1,0 +1,31 @@
+---
+version: "3"
+
+dotenv: [".env.local", ".env"]
+
+tasks:
+  get-function-url:
+    vars:
+      FUNCTION: '{{ default "LibSql" .FUNCTION}}'
+    cmds:
+      - aws cloudformation describe-stacks --region $AWS_REGION --stack-name dotnet-demo --query 'Stacks[0].Outputs[?OutputKey==`{{.FUNCTION}}FunctionUrl`].OutputValue' --output text
+  loadtest:
+    cmds:
+      - echo "Running load test with Artillery..."
+      - echo "API_URL {{.API_URL}}"
+      - echo "TEST_FILE {{.TEST_FILE}}"
+      - npx artillery run ./loadtest/{{.TEST_FILE}} --target {{.API_URL}}
+    vars:
+      TEST_FILE: '{{ default "load-test.yml" .TEST_FILE}}'
+      API_URL:
+        sh: task get-function-url FUNCTION={{.FUNCTION}}
+  libsql-setup:
+    cmds:
+      - node ./db/setup.mjs
+  aws-setup:
+    cmds:
+      - sam build
+      - sam deploy --region $AWS_REGION --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides "LibSqlClientUrl=$LIBSQL_CLIENT_URL" "LibSqlClientToken=$LIBSQL_CLIENT_TOKEN"
+  aws-teardown:
+    cmds:
+      - sam delete --region $AWS_REGION --no-prompts

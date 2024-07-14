@@ -1,5 +1,3 @@
-const crypto = require('crypto');
-
 const COLORS = [
   "Red", "Green", "Blue", "Yellow", "Orange", "Purple", "Pink", "Brown",
   "Black", "White", "Gray", "Silver", "Gold", "Cyan", "Magenta", "Maroon",

@@ -1,0 +1,139 @@
+name: Run Load Test
+
+on:
+  workflow_dispatch:
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  AWS_REGION: us-east-1
+  LIBSQL_CLIENT_URL: ${{ secrets.LIBSQL_CLIENT_URL }}
+  LIBSQL_CLIENT_TOKEN: ${{ secrets.LIBSQL_CLIENT_TOKEN }}
+
+jobs:
+  setup-aws:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 
+
+      - name: Cleanup AWS SAM stack
+        run: task aws-teardown
+
+      - name: Deploy AWS SAM stack
+        run: task aws-setup
+
+  setup-libsql:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 
+
+      - name: Deploy AWS SAM stack
+        run: task libsql-setup
+
+  run-libsql-loadtest:
+    runs-on: ubuntu-latest
+    name: Run libSQL load test
+    needs: [setup-aws, setup-libsql]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 
+
+      - name: Save start time
+        run: echo "START_TIME=$(date -v-10S +%s)" >> $GITHUB_ENV
+
+      - name: Run load test
+        run: task loadtest FUNCTION=LibSql TEST_FILE=load-test.yml
+
+      - name: Wait for 1 minute
+        run: sleep 60
+
+      - name: Save half past time
+        run: echo "HALF_TIME=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Wait for 1 minute
+        run: sleep 60
+
+      - name: Run readonly load test
+        run: task loadtest FUNCTION=LibSql TEST_FILE=load-test-read-only.yml
+
+  run-dynamodb-loadtest:
+    runs-on: ubuntu-latest
+    name: Run DynamoDB load test
+    needs: [run-libsql-loadtest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 
+
+      - name: Save start time
+        run: echo "START_TIME=$(date -v-10S +%s)" >> $GITHUB_ENV
+
+      - name: Run load test
+        run: task loadtest FUNCTION=DynamoDb TEST_FILE=load-test.yml
+
+      - name: Wait for 1 minute
+        run: sleep 60
+
+      - name: Save half past time
+        run: echo "HALF_TIME=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Wait for 1 minute
+        run: sleep 60
+
+      - name: Run readonly load test
+        run: task loadtest FUNCTION=DynamoDb TEST_FILE=load-test-read-only.yml
+
+

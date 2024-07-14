@@ -20,19 +20,9 @@
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.0" />
     <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="1.10.0" />
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.3" />
-    <PackageReference Include="AWSXRayRecorder.Core" Version="2.15.0" />
-    <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.13.0" />
-    <PackageReference Include="AWSXRayRecorder.Handlers.System.Net" Version="2.12.0" />
-    <PackageReference Include="LibSql.Http.Client" Version="0.0.4-alpha.0.2" />
+    <PackageReference Include="LibSql.Http.Client" Version="0.0.6" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lambda.Demo.Shared\Lambda.Demo.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <TrimmerRootAssembly Include="AWSSDK.Core" />
-    <TrimmerRootAssembly Include="AWSXRayRecorder.Core" />
-    <TrimmerRootAssembly Include="AWSXRayRecorder.Handlers.AwsSdk" />
-    <TrimmerRootAssembly Include="AWSXRayRecorder.Handlers.System.Net" />
   </ItemGroup>
 </Project>

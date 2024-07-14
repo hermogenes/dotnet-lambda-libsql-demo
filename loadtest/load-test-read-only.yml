@@ -1,0 +1,17 @@
+config:
+  target: "{{ $processEnvironment.API_URL }}"
+  http:
+    timeout: 60
+  processor: "generator-read-only.js"
+  phases:
+    - duration: 300
+      arrivalRate: 30
+
+scenarios:
+  - name: "Get products"
+    flow:
+      - get:
+          url: "/"
+          afterResponse: getRandomId
+      - get:
+          url: "/{{ id }}"

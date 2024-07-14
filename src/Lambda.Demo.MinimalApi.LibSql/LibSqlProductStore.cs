@@ -1,11 +1,22 @@
 using Lambda.Demo.Shared;
 using LibSql.Http.Client.Interfaces;
+using LibSql.Http.Client.Request;
 
 namespace Lambda.Demo.MinimalApi.LibSql;
 
-public class LibSqlProductStore(ILibSqlHttpClient client) : IProductStore
+public class LibSqlProductStore : IProductStore
 {
-    private const string SelectAllSql = "select id, name, price from products";
+    private readonly ILibSqlHttpClient _client;
+
+    public LibSqlProductStore(ILibSqlHttpClient client)
+    {
+        _client = client;
+        // This is a hack to trigger HTTP connection as early as possible during function warm-up.
+        // Probably there are better ways to do this "pre connection"
+        _client.HealthCheckAsync().GetAwaiter().GetResult();
+    }
+
+    private const string SelectAllSql = "select id, name, price from products limit 20";
 
     private const string SelectByIdSql = "select id, name, price from products where id = ? limit 1";
 
@@ -15,16 +26,16 @@ public class LibSqlProductStore(ILibSqlHttpClient client) : IProductStore
         "insert into products (id, name, price) values (?, ?, ?) on conflict(id) do update set name = excluded.name, price = excluded.price;";
 
     public Task<Product?> GetProduct(string id) =>
-        client.QueryFirstOrDefaultAsync((SelectByIdSql, [id]), SharedSerializerContext.Default.Product);
+        _client.QueryFirstOrDefaultAsync(new Statement(SelectByIdSql, [id]), SharedSerializerContext.Default.Product);
 
     public Task PutProduct(Product product) =>
-        client.ExecuteAsync((InsertSql, [product.Id, product.Name, product.Price]));
+        _client.ExecuteAsync(new Statement(InsertSql, [product.Id, product.Name, product.Price]));
 
-    public Task DeleteProduct(string id) => client.ExecuteAsync((DeleteSql, [id]));
+    public Task DeleteProduct(string id) => _client.ExecuteAsync(new Statement(DeleteSql, [id]));
 
     public async Task<Product[]> GetAllProducts()
     {
-        var products = await client.QueryAsync(SelectAllSql, SharedSerializerContext.Default.Product);
+        var products = await _client.QueryAsync(SelectAllSql, SharedSerializerContext.Default.Product);
 
         return products.ToArray();
     }

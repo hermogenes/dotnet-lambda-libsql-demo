@@ -12,7 +12,7 @@ Parameters:
 Globals:
   Function:
     Timeout: 30
-    MemorySize: 512
+    MemorySize: 1024
     Tracing: Active
     Architectures:
       - arm64
@@ -60,3 +60,20 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref Table
+
+Outputs:
+  LibSqlFunctionName:
+    Description: "LibSql Function Name"
+    Value: !Ref LibSql
+  LibSqlFunctionUrl:
+    Description: "LibSql Function URL"
+    Value: !GetAtt LibSqlUrl.FunctionUrl
+  DynamoDbFunctionName:
+    Description: "DynamoDb Function Name"
+    Value: !Ref DynamoDb
+  DynamoDbFunctionUrl:
+    Description: "DynamoDb Function URL"
+    Value: !GetAtt DynamoDbUrl.FunctionUrl
+  DynamoDbTable:
+    Description: "DynamoDb Table Name"
+    Value: !Ref Table

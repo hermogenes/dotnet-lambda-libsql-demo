@@ -21,8 +21,6 @@
     <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="1.10.0" />
     <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.3" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.304.7" />
-    <PackageReference Include="AWSXRayRecorder.Core" Version="2.15.0" />
-    <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.13.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lambda.Demo.Shared\Lambda.Demo.Shared.csproj" />
@@ -30,7 +28,5 @@
 
   <ItemGroup>
     <TrimmerRootAssembly Include="AWSSDK.Core" />
-    <TrimmerRootAssembly Include="AWSXRayRecorder.Core" />
-    <TrimmerRootAssembly Include="AWSXRayRecorder.Handlers.AwsSdk" />
   </ItemGroup>
 </Project>
