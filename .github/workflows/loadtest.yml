@@ -9,6 +9,7 @@ env:
   AWS_REGION: us-east-1
   LIBSQL_CLIENT_URL: ${{ secrets.LIBSQL_CLIENT_URL }}
   LIBSQL_CLIENT_TOKEN: ${{ secrets.LIBSQL_CLIENT_TOKEN }}
+  SAM_CLI_TELEMETRY: 0
 
 jobs:
   setup-aws:
@@ -36,9 +37,6 @@ jobs:
       - name: Install Task
         uses: arduino/setup-task@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4 
-
       - name: Cleanup AWS SAM stack
         run: task aws-teardown
 
@@ -56,6 +54,8 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v4 
+        with:
+          node-version: 20.x
 
       - name: Deploy AWS SAM stack
         run: task libsql-setup
@@ -79,6 +79,8 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v4 
+        with:
+          node-version: 20.x
 
       - name: Save start time
         run: echo "START_TIME=$(date -v-10S +%s)" >> $GITHUB_ENV
@@ -117,6 +119,8 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v4 
+        with:
+          node-version: 20.x
 
       - name: Save start time
         run: echo "START_TIME=$(date -v-10S +%s)" >> $GITHUB_ENV
