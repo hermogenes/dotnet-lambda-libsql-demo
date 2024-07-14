@@ -25,7 +25,7 @@ tasks:
   aws-setup:
     cmds:
       - sam build
-      - sam deploy --region $AWS_REGION --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides "LibSqlClientUrl=$LIBSQL_CLIENT_URL" "LibSqlClientToken=$LIBSQL_CLIENT_TOKEN"
+      - sam deploy --region $AWS_REGION --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides "LibSqlClientUrl=$LIBSQL_CLIENT_URL" "LibSqlClientToken=$LIBSQL_CLIENT_TOKEN" "Architecture=$LAMBDA_ARCH"
   aws-teardown:
     cmds:
       - sam delete --region $AWS_REGION --no-prompts

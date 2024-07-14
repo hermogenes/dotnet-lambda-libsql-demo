@@ -8,6 +8,13 @@ Parameters:
     Type: String
   LibSqlClientToken:
     Type: String
+  Architecture:
+    Type: String
+    Default: arm64
+    AllowedValues:
+      - arm64
+      - x86_64
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
@@ -15,7 +22,7 @@ Globals:
     MemorySize: 1024
     Tracing: Active
     Architectures:
-      - arm64
+      - !Sub ${Architecture}
     Runtime: dotnet8
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:

@@ -10,6 +10,7 @@ env:
   LIBSQL_CLIENT_URL: ${{ secrets.LIBSQL_CLIENT_URL }}
   LIBSQL_CLIENT_TOKEN: ${{ secrets.LIBSQL_CLIENT_TOKEN }}
   SAM_CLI_TELEMETRY: 0
+  LAMBDA_ARCH: x86_64
 
 jobs:
   setup-aws:
@@ -57,7 +58,7 @@ jobs:
         with:
           node-version: 20.x
 
-      - name: Deploy AWS SAM stack
+      - name: Setup libSQL db
         run: task libsql-setup
 
   run-libsql-loadtest:
