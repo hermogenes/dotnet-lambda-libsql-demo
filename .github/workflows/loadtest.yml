@@ -134,7 +134,7 @@ jobs:
             fs.writeFile('./loadtest/results/start-query-phase-2.json', JSON.stringify({
               logGroupName: '/aws/lambda/dotnet-demo-libsql',
               startTime: ${{ steps.half-time.outputs.timestamp }},
-              endTime: ${{ steps.end-time.outputs.timestamp }},
+              endTime: timestamp,
               queryString
             }))
 
@@ -142,10 +142,11 @@ jobs:
         run: sleep 120
 
       - name: Get Cloudwatch results
+        continue-on-error: true
         run: |
           QUERY_ID_PHASE_1=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-1.json --query queryId --output text)
           QUERY_ID_PHASE_2=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-2.json --query queryId --output text)
-          
+
           sleep 3
 
           aws logs get-query-results --query-id $QUERY_ID_PHASE_1 > ./loadtest/results/query-results-phase-1.json
@@ -231,7 +232,7 @@ jobs:
             fs.writeFile('./loadtest/results/start-query-phase-2.json', JSON.stringify({
               logGroupName: '/aws/lambda/dotnet-demo-dynamodb',
               startTime: ${{ steps.half-time.outputs.timestamp }},
-              endTime: ${{ steps.end-time.outputs.timestamp }},
+              endTime: timestamp,
               queryString
             }))
 
@@ -239,6 +240,7 @@ jobs:
         run: sleep 120
 
       - name: Get Cloudwatch results
+        continue-on-error: true
         run: |
           QUERY_ID_PHASE_1=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-1.json --query queryId --output text)
           QUERY_ID_PHASE_2=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-2.json --query queryId --output text)
