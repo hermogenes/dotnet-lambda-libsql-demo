@@ -25,8 +25,23 @@ scenarios:
       - think: 3
       - delete:
           url: "/{{ id }}"
+  - name: "Generate products without delete"
+    weight: 1
+    flow:
+      - function: "generateProduct"
+      - put:
+          url: "/{{ id }}"
+          headers:
+            Content-Type: "application/json"
+          json:
+            id: "{{ id }}"
+            name: "{{ name }}"
+            price: "{{ price }}"
+      - get:
+          url: "/{{ id }}"
+      - think: 3
   - name: "Get products"
-    weight: 9
+    weight: 8
     flow:
       - get:
           url: "/"
