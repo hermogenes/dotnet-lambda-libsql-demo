@@ -4,8 +4,8 @@ config:
     timeout: 60
   processor: "generator-read-only.js"
   phases:
-    - duration: 300
-      arrivalRate: 30
+    - duration: 120
+      arrivalRate: 50
   plugins:
     metrics-by-endpoint:
       # Group metrics by request name rather than URL:

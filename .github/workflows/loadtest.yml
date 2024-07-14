@@ -99,8 +99,8 @@ jobs:
       - name: Run load test
         run: task loadtest FUNCTION=LibSql TEST_FILE=load-test.yml
 
-      - name: Wait for 1 minute
-        run: sleep 60
+      - name: Wait 30 sec
+        run: sleep 30
 
       - name: Save half time
         id: half-time
@@ -110,8 +110,8 @@ jobs:
             const timestamp = Math.round(Date.now() / 1000);
             core.setOutput('timestamp', timestamp);
 
-      - name: Wait for 1 minute
-        run: sleep 60
+      - name: Wait 30 sec
+        run: sleep 30
 
       - name: Run readonly load test
         run: task loadtest FUNCTION=LibSql TEST_FILE=load-test-read-only.yml OUTPUT=readonly
@@ -138,8 +138,8 @@ jobs:
               queryString
             }))
 
-      - name: Wait for 2 minutes
-        run: sleep 120
+      - name: Wait for 1 minute
+        run: sleep 60
 
       - name: Get Cloudwatch results
         continue-on-error: true
@@ -197,8 +197,8 @@ jobs:
       - name: Run load test
         run: task loadtest FUNCTION=DynamoDb TEST_FILE=load-test.yml
 
-      - name: Wait for 1 minute
-        run: sleep 60
+      - name: Wait 30 sec
+        run: sleep 30
 
       - name: Save half time
         id: half-time
@@ -208,8 +208,8 @@ jobs:
             const timestamp = Math.round(Date.now() / 1000);
             core.setOutput('timestamp', timestamp);
 
-      - name: Wait for 1 minute
-        run: sleep 60
+      - name: Wait 30 sec
+        run: sleep 30
 
       - name: Run readonly load test
         run: task loadtest FUNCTION=DynamoDb TEST_FILE=load-test-read-only.yml OUTPUT=readonly
@@ -236,14 +236,15 @@ jobs:
               queryString
             }))
 
-      - name: Wait for 2 minutes
-        run: sleep 120
+      - name: Wait for 1 minute
+        run: sleep 60
 
       - name: Get Cloudwatch results
         continue-on-error: true
         run: |
           QUERY_ID_PHASE_1=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-1.json --query queryId --output text)
           QUERY_ID_PHASE_2=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-2.json --query queryId --output text)
+
           sleep 3
 
           aws logs get-query-results --query-id $QUERY_ID_PHASE_1 > ./loadtest/results/query-results-phase-1.json
