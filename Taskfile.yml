@@ -12,9 +12,9 @@ tasks:
   loadtest:
     cmds:
       - echo "Running load test with Artillery..."
-      - echo "API_URL {{.API_URL}}"
+      - echo "API_URL {{trimSuffix "/" .API_URL}}"
       - echo "TEST_FILE {{.TEST_FILE}}"
-      - npx artillery run ./loadtest/{{.TEST_FILE}} --target {{.API_URL}}
+      - npx artillery run ./loadtest/{{.TEST_FILE}} --target {{trimSuffix "/" .API_URL}}
     vars:
       TEST_FILE: '{{ default "load-test.yml" .TEST_FILE}}'
       API_URL:
