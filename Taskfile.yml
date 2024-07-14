@@ -24,7 +24,7 @@ tasks:
       - node ./db/setup.mjs
   aws-setup:
     cmds:
-      - sam build
+      - sam build --parameter-overrides "Architecture=$LAMBDA_ARCH"
       - sam deploy --region $AWS_REGION --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides "LibSqlClientUrl=$LIBSQL_CLIENT_URL" "LibSqlClientToken=$LIBSQL_CLIENT_TOKEN" "Architecture=$LAMBDA_ARCH"
   aws-teardown:
     cmds:
