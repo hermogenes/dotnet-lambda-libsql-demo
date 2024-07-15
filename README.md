@@ -2,7 +2,7 @@
 
 This is a demo project to show how to use the [libSQL](https://docs.turso.tech/libsql) library in a .NET Lambda function.
 
-Check the [blog post](https://hermogenes.dev/s/dotnet-libsql-benchmark) for more details.
+Check the [blog post](https://dev.to/hermogenes/you-should-try-net-libsql-and-heres-why-173h) for more details.
 
 ## Prerequisites
 
