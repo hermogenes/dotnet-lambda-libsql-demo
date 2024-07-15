@@ -53,12 +53,15 @@ jobs:
       function: libsql
 
   run-dynamodb-loadtest:
-    needs: [run-libsql-loadtest]
+    needs: [aws, setup-libsql]
     name: DynamoDb Load Test
     uses: ./.github/workflows/run-loadtest.yml
     secrets: inherit
     with:
       function: dynamodb
+      wait-time: 420
+      # 7 minutes - We need to wait libSQL to finish run before starting DynamoDb
+      # We could use GH Actions needs but it would include the wait time for metrics collection
 
   cleanup:
     needs: [run-dynamodb-loadtest]

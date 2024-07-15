@@ -9,6 +9,11 @@ on:
         description: 'Function to test'
         required: true
         default: 'libsql'
+      wait-time:
+        type: number
+        description: 'Time to wait before starting'
+        required: false
+        default: 0
   workflow_dispatch:
     inputs:
       function:
@@ -19,6 +24,11 @@ on:
           - 'libsql'
           - 'dynamodb'
         default: 'libsql'
+      wait-time:
+        type: number
+        description: 'Time to wait before starting'
+        required: false
+        default: 0
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -55,6 +65,9 @@ jobs:
         uses: actions/setup-node@v4 
         with:
           node-version: 20.x
+
+      - name: Wait ${{inputs.wait-time}} sec
+        run: sleep ${{inputs.wait-time}}
 
       - name: Save start time
         id: start-time
