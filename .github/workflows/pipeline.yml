@@ -28,6 +28,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            Taskfile.yml
+            db
 
       - name: Install Task
         uses: arduino/setup-task@v2

@@ -60,11 +60,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-
       - uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
