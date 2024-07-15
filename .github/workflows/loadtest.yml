@@ -12,6 +12,7 @@ env:
   SAM_CLI_TELEMETRY: 0
   LAMBDA_ARCH: x86_64
   ARTILLERY_DISABLE_TELEMETRY: true
+  LOGS_QUERY: filter @type="REPORT" | fields greatest(@initDuration, 0) + @duration as duration, ispresent(@initDuration) as coldstart | stats count(*) as count, min(duration) as min, avg(duration) as avg, pct(duration, 50) as p50, pct(duration, 75) as p75, pct(duration, 90) as p90, pct(duration, 95) as p95, pct(duration, 99) as p99, max(duration) as max by coldstart
 
 jobs:
   setup-aws:
@@ -121,22 +122,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs')
             const timestamp = Math.round(Date.now() / 1000);
             core.setOutput('timestamp', timestamp);
-            const queryString = 'filter @type="REPORT" | fields greatest(@initDuration, 0) + @duration as duration, ispresent(@initDuration) as coldstart | stats count(*) as count, min(duration) as min, avg(duration) as avg, pct(duration, 50) as p50, pct(duration, 75) as p75, pct(duration, 90) as p90, pct(duration, 95) as p95, pct(duration, 99) as p99, max(duration) as max by coldstart';
-            fs.writeFileSync('./loadtest/results/start-query-phase-1.json', JSON.stringify({
-              logGroupName: '/aws/lambda/dotnet-demo-libsql',
-              startTime: ${{ steps.start-time.outputs.timestamp }},
-              endTime: ${{ steps.half-time.outputs.timestamp }},
-              queryString
-            }))
-            fs.writeFileSync('./loadtest/results/start-query-phase-2.json', JSON.stringify({
-              logGroupName: '/aws/lambda/dotnet-demo-libsql',
-              startTime: ${{ steps.half-time.outputs.timestamp }},
-              endTime: timestamp,
-              queryString
-            }))
 
       - name: Wait for 1 minute
         run: sleep 60
@@ -144,8 +131,8 @@ jobs:
       - name: Get Cloudwatch results
         continue-on-error: true
         run: |
-          QUERY_ID_PHASE_1=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-1.json --query queryId --output text)
-          QUERY_ID_PHASE_2=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-2.json --query queryId --output text)
+          QUERY_ID_PHASE_1=$(aws logs start-query --log-group-name /aws/lambda/dotnet-demo-libsql --start-time ${{ steps.start-time.outputs.timestamp }} --end-time ${{ steps.half-time.outputs.timestamp }} --query-string '${{env.LOGS_QUERY}}' --query queryId --output text)
+          QUERY_ID_PHASE_2=$(aws logs start-query --log-group-name /aws/lambda/dotnet-demo-libsql --start-time ${{ steps.half-time.outputs.timestamp }} --end-time ${{ steps.end-time.outputs.timestamp }} --query-string '${{env.LOGS_QUERY}}' --query queryId --output text)
 
           sleep 3
 
@@ -219,22 +206,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs')
             const timestamp = Math.round(Date.now() / 1000);
             core.setOutput('timestamp', timestamp);
-            const queryString = 'filter @type="REPORT" | fields greatest(@initDuration, 0) + @duration as duration, ispresent(@initDuration) as coldstart | stats count(*) as count, min(duration) as min, avg(duration) as avg, pct(duration, 50) as p50, pct(duration, 75) as p75, pct(duration, 90) as p90, pct(duration, 95) as p95, pct(duration, 99) as p99, max(duration) as max by coldstart';
-            fs.writeFileSync('./loadtest/results/start-query-phase-1.json', JSON.stringify({
-              logGroupName: '/aws/lambda/dotnet-demo-dynamodb',
-              startTime: ${{ steps.start-time.outputs.timestamp }},
-              endTime: ${{ steps.half-time.outputs.timestamp }},
-              queryString
-            }))
-            fs.writeFileSync('./loadtest/results/start-query-phase-2.json', JSON.stringify({
-              logGroupName: '/aws/lambda/dotnet-demo-dynamodb',
-              startTime: ${{ steps.half-time.outputs.timestamp }},
-              endTime: timestamp,
-              queryString
-            }))
 
       - name: Wait for 1 minute
         run: sleep 60
@@ -242,8 +215,8 @@ jobs:
       - name: Get Cloudwatch results
         continue-on-error: true
         run: |
-          QUERY_ID_PHASE_1=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-1.json --query queryId --output text)
-          QUERY_ID_PHASE_2=$(aws logs start-query --cli-input-json ./loadtest/results/start-query-phase-2.json --query queryId --output text)
+          QUERY_ID_PHASE_1=$(aws logs start-query --log-group-name /aws/lambda/dotnet-demo-dynamodb --start-time ${{ steps.start-time.outputs.timestamp }} --end-time ${{ steps.half-time.outputs.timestamp }} --query-string '${{env.LOGS_QUERY}}' --query queryId --output text)
+          QUERY_ID_PHASE_2=$(aws logs start-query --log-group-name /aws/lambda/dotnet-demo-dynamodb --start-time ${{ steps.half-time.outputs.timestamp }} --end-time ${{ steps.end-time.outputs.timestamp }} --query-string '${{env.LOGS_QUERY}}' --query queryId --output text)
 
           sleep 3
 
