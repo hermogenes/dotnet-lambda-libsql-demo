@@ -61,6 +61,7 @@ jobs:
       function: dynamodb
 
   cleanup:
+    needs: [run-dynamodb-loadtest]
     name: Cleanup AWS stack
     uses: ./.github/workflows/sam.yml
     secrets: inherit
