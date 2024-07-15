@@ -31,7 +31,7 @@ Globals:
     TracingEnabled: true
 
 Resources:
-  Table:
+  table:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
@@ -41,7 +41,7 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-  LibSql:
+  libsql:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       FunctionName: dotnet-demo-libsql
@@ -53,7 +53,7 @@ Resources:
           LIBSQL_CLIENT_TOKEN: !Sub ${LibSqlClientToken}
       FunctionUrlConfig:
         AuthType: NONE
-  DynamoDb:
+  dynamodb:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       FunctionName: dotnet-demo-dynamodb
@@ -69,18 +69,18 @@ Resources:
             TableName: !Ref Table
 
 Outputs:
-  LibSqlFunctionName:
+  libsqlFunctionName:
     Description: "LibSql Function Name"
     Value: !Ref LibSql
-  LibSqlFunctionUrl:
+  libsqlFunctionUrl:
     Description: "LibSql Function URL"
     Value: !GetAtt LibSqlUrl.FunctionUrl
-  DynamoDbFunctionName:
+  dynamodbFunctionName:
     Description: "DynamoDb Function Name"
     Value: !Ref DynamoDb
-  DynamoDbFunctionUrl:
+  dynamodbFunctionUrl:
     Description: "DynamoDb Function URL"
     Value: !GetAtt DynamoDbUrl.FunctionUrl
-  DynamoDbTable:
+  dynamodbTable:
     Description: "DynamoDb Table Name"
     Value: !Ref Table

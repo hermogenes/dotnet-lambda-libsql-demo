@@ -1,0 +1,114 @@
+name: Setup SAM stack
+run-name: Setup SAM stack (${{inputs.config}})
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        type: string
+        description: 'SAM config file to use'
+        required: true
+        default: 'samconfig.toml'
+      run-teardown:
+        type: boolean
+        description: 'Run teardown task'
+        required: false
+        default: true
+      run-setup:
+        type: boolean
+        description: 'Run setup task'
+        required: false
+        default: true
+  workflow_dispatch:
+    inputs:
+      config:
+        type: choice
+        description: 'SAM config file to use'
+        required: true
+        default: 'samconfig.toml'
+        options:
+          - 'samconfig.toml'
+          - 'samconfig-libsql.toml'
+          - 'samconfig-dynamodb.toml'
+      run-teardown:
+        type: boolean
+        description: 'Run teardown task'
+        required: true
+        default: true
+      run-setup:
+        type: boolean
+        description: 'Run setup task'
+        required: true
+        default: true
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  AWS_REGION: us-east-1
+  LIBSQL_CLIENT_URL: ${{ secrets.LIBSQL_CLIENT_URL }}
+  LIBSQL_CLIENT_TOKEN: ${{ secrets.LIBSQL_CLIENT_TOKEN }}
+  SAM_CLI_TELEMETRY: 0
+  LAMBDA_ARCH: x86_64
+  ARTILLERY_DISABLE_TELEMETRY: true
+
+jobs:
+  down:
+    if: ${{inputs.run-teardown}}
+    runs-on: ubuntu-latest
+    name: Teardown
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Cleanup AWS SAM stack
+        run: task aws-teardown
+
+  up:
+    if: ${{ always() && inputs.run-setup && contains(needs.*.result, 'success') }}
+    needs: down
+    runs-on: ubuntu-latest
+    name: Setup
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Cleanup AWS SAM stack
+        run: task aws-setup

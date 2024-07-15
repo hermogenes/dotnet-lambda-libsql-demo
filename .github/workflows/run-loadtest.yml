@@ -1,0 +1,134 @@
+name: Run function loadtest
+run-name: ${{inputs.function}} loadtest
+
+on:
+  workflow_call:
+    inputs:
+      function:
+        type: string
+        description: 'Function to test'
+        required: true
+        default: 'libsql'
+  workflow_dispatch:
+    inputs:
+      function:
+        type: choice
+        description: 'Function to test'
+        required: true
+        options:
+          - 'libsql'
+          - 'dynamodb'
+        default: 'libsql'
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  AWS_REGION: us-east-1
+  LIBSQL_CLIENT_URL: ${{ secrets.LIBSQL_CLIENT_URL }}
+  LIBSQL_CLIENT_TOKEN: ${{ secrets.LIBSQL_CLIENT_TOKEN }}
+  SAM_CLI_TELEMETRY: 0
+  LAMBDA_ARCH: x86_64
+  ARTILLERY_DISABLE_TELEMETRY: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    name: Run
+    outputs:
+      start-time: ${{ steps.start-time.outputs.timestamp }}
+      half-time: ${{ steps.half-time.outputs.timestamp }}
+      end-time: ${{ steps.end-time.outputs.timestamp }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 
+        with:
+          node-version: 20.x
+
+      - name: Save start time
+        id: start-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000);
+            core.setOutput('timestamp', timestamp);
+
+      - name: Run load test
+        run: task loadtest FUNCTION=${{inputs.function}} TEST_FILE=load-test.yml
+
+      - name: Wait 10 sec
+        run: sleep 10
+
+      - name: Save half time
+        id: half-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000);
+            core.setOutput('timestamp', timestamp);
+
+      - name: Run readonly load test
+        run: task loadtest FUNCTION=${{inputs.function}} TEST_FILE=load-test-read-only.yml TEST_RESULT_OUTPUT=readonly
+
+      - name: Save end time
+        id: end-time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = Math.round(Date.now() / 1000) + 30;
+            core.setOutput('timestamp', timestamp);
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{inputs.function}}-loadtest-results
+          if-no-files-found: error
+          retention-days: 7
+          path: ./loadtest/results
+
+  cloudwatch:
+    runs-on: ubuntu-latest
+    name: Collect Cloudwatch Metrics
+    needs: run
+    environment: loadtest-${{inputs.function}}
+    env:
+      LOGS_QUERY: filter @type="REPORT" | fields greatest(@initDuration, 0) + @duration as duration, ispresent(@initDuration) as coldstart | stats count(*) as count, min(duration) as min, avg(duration) as avg, pct(duration, 50) as p50, pct(duration, 75) as p75, pct(duration, 90) as p90, pct(duration, 95) as p95, pct(duration, 99) as p99, max(duration) as max by coldstart
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Get Cloudwatch results
+        continue-on-error: true
+        run: |
+          mkdir -p ./query-results
+
+          QUERY_ID_PHASE_1=$(aws logs start-query --log-group-name /aws/lambda/dotnet-demo-${{inputs.function}} --start-time ${{ needs.run.outputs.start-time }} --end-time ${{ needs.run.outputs.half-time }} --query-string '${{env.LOGS_QUERY}}' --query queryId --output text)
+          QUERY_ID_PHASE_2=$(aws logs start-query --log-group-name /aws/lambda/dotnet-demo-${{inputs.function}} --start-time ${{ needs.run.outputs.half-time }} --end-time ${{ needs.run.outputs.end-time }} --query-string '${{env.LOGS_QUERY}}' --query queryId --output text)
+
+          sleep 5
+
+          aws logs get-query-results --query-id $QUERY_ID_PHASE_1 > ./query-results/phase-1.json
+          aws logs get-query-results --query-id $QUERY_ID_PHASE_2 > ./query-results/phase-2.json
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{inputs.function}}-cloudwatch-results
+          if-no-files-found: error
+          retention-days: 7
+          path: ./query-results
+
