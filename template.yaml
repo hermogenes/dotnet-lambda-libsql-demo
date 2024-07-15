@@ -61,26 +61,26 @@ Resources:
       Handler: Lambda.Demo.MinimalApi.DynamoDb
       Environment:
         Variables:
-          PRODUCT_TABLE_NAME: !Ref Table
+          PRODUCT_TABLE_NAME: !Ref table
       FunctionUrlConfig:
         AuthType: NONE
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref Table
+            TableName: !Ref table
 
 Outputs:
   libsqlFunctionName:
     Description: "LibSql Function Name"
-    Value: !Ref LibSql
+    Value: !Ref libsql
   libsqlFunctionUrl:
     Description: "LibSql Function URL"
-    Value: !GetAtt LibSqlUrl.FunctionUrl
+    Value: !GetAtt libsqlUrl.FunctionUrl
   dynamodbFunctionName:
     Description: "DynamoDb Function Name"
-    Value: !Ref DynamoDb
+    Value: !Ref dynamodb
   dynamodbFunctionUrl:
     Description: "DynamoDb Function URL"
-    Value: !GetAtt DynamoDbUrl.FunctionUrl
+    Value: !GetAtt dynamodbUrl.FunctionUrl
   dynamodbTable:
     Description: "DynamoDb Table Name"
-    Value: !Ref Table
+    Value: !Ref table
